@@ -27,7 +27,7 @@ spec:
     # ########################################################
     # location of the git repository with your application
     - name: git-repository
-      value: "https://github.com/dalelane/app-connect-tekton-pipeline"
+      value: "https://github.com/chrism83/app-connect-tekton-pipeline"
 
     # name of the App Connect project to deploy
     #  This should be the name of a folder in ace-projects
@@ -51,7 +51,7 @@ spec:
     - name: pipeline-shared-workspace
       volumeClaimTemplate:
         spec:
-          storageClassName: ibmc-block-gold
+          storageClassName: ocs-storagecluster-ceph-rbd
           accessModes:
             - ReadWriteOnce
           resources:
