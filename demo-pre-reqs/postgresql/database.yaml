@@ -4,16 +4,19 @@ metadata:
   name: store
   namespace: postgresql
 spec:
+  image: registry.connect.redhat.com/crunchydata/crunchy-postgres@sha256:eced136169980e95d8f002e2f95cef44e4132a70d06e3399f236241d3899af76
   port: 5432
   databaseInitSQL:
     name: pg-initial-data-cm
     key: setup_data.sql
   proxy:
     pgBouncer:
+      image: registry.connect.redhat.com/crunchydata/crunchy-pgbouncer@sha256:22414de1b9fea7d88bb753ea67a0f3634427f87590a405fa5eaddefe5b101176
       port: 5432
       replicas: 1
   backups:
     pgbackrest:
+      image: registry.connect.redhat.com/crunchydata/crunchy-pgbackrest@sha256:35ec028bae6c112d9bba20f5a9e8dcf4c2610cc11728d23a1bdfbc0357676bfc
       repos:
       - name: repo1
         volume:
@@ -33,8 +36,6 @@ spec:
         pg_hba:
           - "hostnossl all all all md5"
           - "host all all all md5"
-        parameters:
-          shared_preload_libraries: timescaledb
   instances:
     - dataVolumeClaimSpec:
         accessModes:
@@ -43,7 +44,7 @@ spec:
           requests:
             storage: 1Gi
       replicas: 1
-  postgresVersion: 13
+  postgresVersion: 16
   users:
     #
     # credentials for use by ACE
