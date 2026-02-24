@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
-  <policy policyType="Kafka" policyName="eventstreams" policyTemplate="Kafka">
-    <bootstrapServers>TEMPLATE_BOOTSTRAP_SERVER</bootstrapServers>
-    <securityProtocol>SASL_SSL</securityProtocol>
-    <saslMechanism>SCRAM-SHA-512</saslMechanism>
-    <sslProtocol>TLSv1.2</sslProtocol>
-    <securityIdentity>es-creds</securityIdentity>
-    <saslConfig>org.apache.kafka.common.security.scram.ScramLoginModule required;</saslConfig>
-    <sslKeystoreLocation></sslKeystoreLocation>
-    <sslKeystoreType></sslKeystoreType>
-    <sslKeystoreSecurityIdentity></sslKeystoreSecurityIdentity>
-    <sslKeySecurityIdentity></sslKeySecurityIdentity>
-    <sslTruststoreLocation>/home/aceuser/truststores/TEMPLATE_TRUSTSTORE_FILE</sslTruststoreLocation>
-    <sslTruststoreType>JKS</sslTruststoreType>
-    <sslTruststoreSecurityIdentity>es-truststore</sslTruststoreSecurityIdentity>
-    <sslEnableCertificateHostnameChecking>false</sslEnableCertificateHostnameChecking>
-    <krbServiceName></krbServiceName>
-  </policy>
+    <policy longDescription="" policyName="eventstreams" policyTemplate="Kafka" policyType="Kafka" shortDescription="" version="">
+        <bootstrapServers>TEMPLATE_BOOTSTRAP_SERVER</bootstrapServers>
+        <clientId/>
+        <securityIdentity>es-creds</securityIdentity>
+        <securityProtocol>SASL_SSL</securityProtocol>
+        <saslMechanism>SCRAM-SHA-512</saslMechanism>
+        <saslConfig>org.apache.kafka.common.security.scram.ScramLoginModule required;</saslConfig>
+        <krbServiceName/>
+        <sslProtocol>TLSv1.2</sslProtocol>
+        <sslKeystoreLocation/>
+        <sslKeystoreType/>
+        <sslKeystoreSecurityIdentity/>
+        <sslKeySecurityIdentity/>
+        <sslTruststoreLocation>/home/aceuser/truststores/TEMPLATE_TRUSTSTORE_FILE</sslTruststoreLocation>
+        <sslTruststoreType>JKS</sslTruststoreType>
+        <sslTruststoreSecurityIdentity>es-truststore</sslTruststoreSecurityIdentity>
+        <sslEnableCertificateHostnameChecking>false</sslEnableCertificateHostnameChecking>
+    </policy>
 </policies>
