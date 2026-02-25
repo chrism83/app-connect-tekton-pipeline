@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policies>
+    <policy longDescription="" policyName="QMGRNATIVEHA" policyTemplate="MQEndpoint" policyType="MQEndpoint" shortDescription="" version="">
+        <connectionMode>client</connectionMode>
+        <queueManagerName>QMGRNATIVEHA</queueManagerName>
+        <connectionNameList>TEMPLATE_MQ_HOST(TEMPLATE_MQ_PORT)</connectionNameList>
+        <channelName>ACE.SVRCONN</channelName>
+        <useSSL>false</useSSL>
+        <SSLCipherSpec/>
+        <SSLCertificateRevocationListDN/>
+        <SSLPeerName/>
+        <securityIdentity/>
+        <maximumMessageLength>104857600</maximumMessageLength>
+        <heartbeatInterval>300</heartbeatInterval>
+    </policy>
+</policies>

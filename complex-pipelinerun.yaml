@@ -63,7 +63,7 @@ spec:
         - "sample-ace-policies/eventstreams.policyxml TEMPLATE_BOOTSTRAP_SERVER    bootstrap-server kafka-connection-info          tools"
         - "sample-ace-policies/eventstreams.policyxml TEMPLATE_TRUSTSTORE_FILE     truststore-name  kafka-connection-info          tools"
         # update credentials for connecting to Kafka
-        - "sample-ace-config/setdbparms.txt           TEMPLATE_KAFKA_ES_PASSWORD   password         es-demo-ibm-es-kafka-user      tools"
+        - "sample-ace-config/setdbparms.txt           TEMPLATE_KAFKA_ES_PASSWORD   password         es-demo-ace-demo               tools"
         - "sample-ace-config/setdbparms.txt           TEMPLATE_TRUSTSTORE_PASSWORD ca.password      es-demo-cluster-ca-cert        tools"
         # update connection information for the PostgreSQL database
         - "sample-ace-data-sources/datasources.json   TEMPLATE_POSTGRES_HOST       host             store-pguser-cp4i              postgresql"

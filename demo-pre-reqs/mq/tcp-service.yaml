@@ -1,0 +1,30 @@
+#
+# Kubernetes Service to expose the TCP/IP port 7900 from the ACE IntegrationRuntime.
+# The ACE flow listens on port 7900 for incoming JSON messages.
+# This service makes it reachable within the cluster (ClusterIP).
+#
+# Apply after the IntegrationRuntime tcp-to-mq is deployed:
+#   oc apply -f demo-pre-reqs/mq/tcp-service.yaml
+#
+# To test internally (from another pod):
+#   nc tcp-to-mq-tcp.ace-demo.svc 7900
+#   {"id":"123","tipo":"pagamento","valor":9999.99}    (followed by Enter/newline)
+#
+# To expose externally, change type to NodePort or create a Route (passthrough for TCP).
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: tcp-to-mq-tcp
+  namespace: ace-demo
+  labels:
+    app: tcp-to-mq
+spec:
+  selector:
+    app.kubernetes.io/name: tcp-to-mq
+  ports:
+    - name: tcp-input
+      port: 7900
+      targetPort: 7900
+      protocol: TCP
+  type: ClusterIP

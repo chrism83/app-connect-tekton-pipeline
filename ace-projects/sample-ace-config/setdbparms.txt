@@ -1,4 +1,4 @@
-kafka::es-creds              appconnect-kafka-user            TEMPLATE_KAFKA_ES_PASSWORD
+kafka::es-creds              es-demo-ace-demo                 TEMPLATE_KAFKA_ES_PASSWORD
 
 truststore::es-truststore    notused                          TEMPLATE_TRUSTSTORE_PASSWORD
 

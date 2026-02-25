@@ -1,0 +1,89 @@
+#
+# PipelineRun: TCP/IP → IBM MQ integration
+#
+# Deploys an ACE IntegrationRuntime that:
+#   1. Listens on TCP port 7900 for JSON messages
+#   2. Adds a JSON envelope header {timestamp, source, correlationId, version}
+#   3. Puts the enveloped message to IBM MQ queue CP4I.DEMO.IN.Q
+#
+# Queue Manager: QMGRNATIVEHA at qmgr-native-ha-ibm-mq.cp4i-mq.svc:1414
+# Channel: ACE.SVRCONN (plain TCP, no SSL)
+#
+# Pre-requisite: create the mq-connection-info secret in tools namespace:
+#   oc apply -f demo-pre-reqs/mq/mq-connection-info-secret.yaml
+#
+
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: ace-deploy-
+spec:
+  serviceAccountName: pipeline-deployer-serviceaccount
+  params:
+    # ########################################################
+    # where to run the App Connect application
+    # ########################################################
+    - name: integration-server-name
+      value: "tcp-to-mq"
+    - name: ace-namespace
+      value: "ace-demo"
+
+    # ########################################################
+    # where to find the projects to create
+    # ########################################################
+    - name: git-repository
+      value: "https://github.com/chrism83/app-connect-tekton-pipeline"
+
+    # ACE application project (TCP/IP flow)
+    - name: ace-project-name
+      value: "tcpip-to-mq"
+
+    # No test project for this integration (can be added later)
+    - name: test-project-name
+      value: ""
+
+    # ########################################################
+    # credentials: substitute TEMPLATE_* values in policy file
+    # ########################################################
+    - name: credentials-to-update
+      value:
+        # Replace MQ host and port in the policy file
+        - "tcpip-mq-policies/QMGRNATIVEHA.policyxml TEMPLATE_MQ_HOST host mq-connection-info tools"
+        - "tcpip-mq-policies/QMGRNATIVEHA.policyxml TEMPLATE_MQ_PORT port mq-connection-info tools"
+
+    # ########################################################
+    # optional supporting resources
+    # ########################################################
+
+    # MQ Policy project
+    - name: policies-project-folder
+      value: "ace-projects/tcpip-mq-policies"
+    - name: policies-project-name
+      value: "tcpip-mq-policies"
+
+    # Server configuration (minimal, no custom settings needed)
+    - name: serverconf-file
+      value: "ace-projects/tcpip-mq-config/server.conf.yaml"
+    - name: serverconf-name
+      value: "tcpip-mq-serverconf"
+
+    # ########################################################
+    # git credentials for pushing BAR file to the repository
+    # ########################################################
+    - name: git-credentials-secret
+      value: "github-credentials"
+
+
+  pipelineRef:
+    name: pipeline-ace-integration-server
+
+  workspaces:
+    - name: pipeline-shared-workspace
+      volumeClaimTemplate:
+        spec:
+          storageClassName: ocs-external-storagecluster-ceph-rbd
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 100Mi

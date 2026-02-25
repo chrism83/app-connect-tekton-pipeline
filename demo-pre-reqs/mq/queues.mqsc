@@ -1,0 +1,26 @@
+* =============================================================
+* MQSC commands to configure QMGRNATIVEHA for the tcp-to-mq ACE flow
+* Queue Manager: qmgr-native-ha in namespace cp4i-mq
+*
+* Already applied via pipeline setup (documented here for reference).
+* To reapply:
+*   oc exec -n cp4i-mq qmgr-native-ha-ibm-mq-0 -- \
+*     runmqsc QMGRNATIVEHA < demo-pre-reqs/mq/queues.mqsc
+* =============================================================
+
+* ─── Channel for ACE client connections (no SSL for internal cluster use) ───
+DEFINE CHANNEL('ACE.SVRCONN') CHLTYPE(SVRCONN) TRPTYPE(TCP) MCAUSER('mqm') REPLACE
+
+* Allow all users except 'nobody' (BLOCKUSER with empty USERLIST = allow all)
+SET CHLAUTH('ACE.SVRCONN') TYPE(BLOCKUSER) USERLIST('nobody')
+
+* ─── Input queue: receives messages from the TCP/IP ACE flow ────────────────
+DEFINE QLOCAL('CP4I.DEMO.IN.Q') DEFPSIST(YES) MAXDEPTH(5000) REPLACE
+
+* ─── Output queue: for the MQ-to-MQ transform flow (future use) ─────────────
+DEFINE QLOCAL('CP4I.DEMO.OUT.Q') DEFPSIST(YES) MAXDEPTH(5000) REPLACE
+
+* ─── Auth records: grant mqm user access ───────────────────────────────────
+SET AUTHREC OBJTYPE(QMGR) PRINCIPAL('mqm') AUTHADD(CONNECT,INQ)
+SET AUTHREC PROFILE('CP4I.DEMO.IN.Q') OBJTYPE(QUEUE) PRINCIPAL('mqm') AUTHADD(PUT,GET,INQ,BROWSE)
+SET AUTHREC PROFILE('CP4I.DEMO.OUT.Q') OBJTYPE(QUEUE) PRINCIPAL('mqm') AUTHADD(PUT,GET,INQ,BROWSE)

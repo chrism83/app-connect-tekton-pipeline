@@ -1,0 +1,61 @@
+BROKER SCHEMA tcpip_to_mq_transform;
+
+/**
+ * tcpip_to_mq_transform
+ *
+ * Receives a JSON message over TCP/IP (BLOB domain) and wraps it
+ * in an envelope before putting it to an IBM MQ queue.
+ *
+ * Input  (BLOB domain):  raw JSON bytes from TCP client, e.g.:
+ *   {"id":"123","tipo":"pagamento","valor":9999.99}
+ *
+ * Output (JSON domain):  JSON envelope sent to MQ:
+ *   {
+ *     "header": {
+ *       "timestamp":     "2026-02-25T18:00:00Z",
+ *       "source":        "tcp-gateway",
+ *       "correlationId": "a1b2c3d4-...",
+ *       "version":       "1.0"
+ *     },
+ *     "payload": "{\"id\":\"123\",\"tipo\":\"pagamento\",\"valor\":9999.99}"
+ *   }
+ *
+ * NOTE: The payload is embedded as a JSON string (escaped). This avoids
+ * the need for complex runtime JSON parsing while keeping the envelope valid.
+ * Consumers can parse the payload field independently.
+ */
+CREATE COMPUTE MODULE tcpip_to_mq_transform
+
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+
+		-- Read the raw bytes received from the TCP/IP client (BLOB domain)
+		DECLARE rawBlob  BLOB InputRoot.BLOB.BLOB;
+		DECLARE rawJson  CHAR CAST(rawBlob AS CHAR CCSID 1208);
+
+		-- Build JSON output tree
+		CREATE LASTCHILD OF OutputRoot DOMAIN 'JSON';
+
+		-- ── HEADER: metadata fields added by the gateway ─────────────────
+		SET OutputRoot.JSON.Data.header.timestamp     = CAST(CURRENT_GMTIMESTAMP AS CHARACTER FORMAT 'IU');
+		SET OutputRoot.JSON.Data.header.source        = 'tcp-gateway';
+		SET OutputRoot.JSON.Data.header.correlationId = UUIDASCHAR;
+		SET OutputRoot.JSON.Data.header.version       = '1.0';
+
+		-- ── PAYLOAD: original JSON string from the TCP client ─────────────
+		-- Stored as a JSON string value so the envelope is always well-formed,
+		-- regardless of what the client sends.
+		SET OutputRoot.JSON.Data.payload = rawJson;
+
+		-- ── MQ message descriptor ─────────────────────────────────────────
+		-- Set format to MQSTR so MQ treats the body as a text string.
+		-- Create MQMD before the JSON body.
+		CREATE FIRSTCHILD OF OutputRoot DOMAIN 'MQMD';
+		SET OutputRoot.MQMD.Format       = 'MQSTR   ';
+		SET OutputRoot.MQMD.CodedCharSetId = 1208;
+		SET OutputRoot.MQMD.Encoding     = 546;
+
+		RETURN TRUE;
+	END;
+
+END MODULE;
