@@ -8,7 +8,7 @@
     <composition>
       <!-- TCP/IP Server Input: listens on port 7900, newline (0x0A) as message delimiter -->
       <!-- messageDomain=BLOB: raw bytes; ESQL handles JSON parsing and envelope construction -->
-      <nodes xmi:type="ComIbmTCPIPServerInput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_1" location="10,10" listenerPort="7900" messageDomain="BLOB" endOfMessage="EOM_EOM" endOfMessagePattern="0A" maxClientConnections="100">
+      <nodes xmi:type="ComIbmTCPIPServerInput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_1" location="10,10" connectionDetails="7900" listenerPort="7900" messageDomain="BLOB" endOfMessage="EOM_EOM" endOfMessagePattern="0A" maxClientConnections="100">
         <translation xmi:type="utility:ConstantString" string="TCP server input port 7900"/>
       </nodes>
       <!-- Compute: reads BLOB bytes, builds JSON envelope {header: {...}, payload: {...}} -->
