@@ -3,3 +3,4 @@ ibm-entitlement-key.yaml
 *.class
 .DS_Store
 ca.p12
+kafka-producer.properties

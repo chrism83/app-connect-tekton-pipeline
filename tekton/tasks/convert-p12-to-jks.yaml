@@ -24,7 +24,9 @@ spec:
 
   steps:
     - name: run-java
-      image: openjdk:11
+      image: registry.access.redhat.com/ubi9/openjdk-11
+      securityContext:
+        runAsUser: 0
       script: |
         #!/bin/sh
 

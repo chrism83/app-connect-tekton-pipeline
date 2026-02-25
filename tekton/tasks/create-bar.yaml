@@ -14,6 +14,10 @@ spec:
         Name of a Java project with implementation of Java Compute nodes.
         Leave this blank if no Java project is needed
 
+    - name: ace-build-image
+      default: "cp.icr.io/cp/appc/ace:13.0.5.2-r1"
+      description: ACE developer image used to compile the BAR file
+
   results:
     - name: folder
       description: folder containing the created bar file
@@ -46,9 +50,9 @@ spec:
 
 
     - name: run-ace
-      # see https://www.ibm.com/docs/en/app-connect/12.0?topic=cacerid-building-sample-app-connect-enterprise-image-using-docker
+      # see https://www.ibm.com/docs/en/app-connect/containers_cd?topic=obtaining-app-connect-enterprise-server-image-from-cloud-container-registry
       #  for alternate images and versions that can be used for this
-      image: cp.icr.io/cp/appc/ace:12.0.6.0-r1@sha256:003ca6615312b0987fca1c09d676a77fc2c77ecc8607dfaa49f2e8e1976a6a15
+      image: "$(params.ace-build-image)"
       securityContext:
         # run as the aceuser user id
         runAsUser: 1001
@@ -65,7 +69,7 @@ spec:
         echo "building a bar file for use with App Connect"
 
         echo "setting up environment"
-        source /opt/ibm/ace-12/server/bin/mqsiprofile
+        source /opt/ibm/ace-13/server/bin/mqsiprofile
 
         echo "verifying bar output location"
         BAR_FOLDER="/workspace/output/bars"

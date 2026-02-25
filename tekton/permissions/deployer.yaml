@@ -11,7 +11,7 @@ rules:
       - appconnect.ibm.com
     resources:
       - configurations
-      - integrationservers
+      - integrationruntimes
     verbs:
       - create
       - patch

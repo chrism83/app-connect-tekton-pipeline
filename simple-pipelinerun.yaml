@@ -41,6 +41,13 @@ spec:
     - name: test-project-name
       value: "simple-demo_Test"
 
+    # ########################################################
+    # git credentials for pushing BAR file to the repository
+    # ########################################################
+    # Secret in pipeline-ace namespace with keys 'username' and 'password' (PAT)
+    - name: git-credentials-secret
+      value: "github-credentials"
+
 
   pipelineRef:
     name: pipeline-ace-integration-server

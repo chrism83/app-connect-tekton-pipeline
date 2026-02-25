@@ -1,0 +1,85 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: ace-push-bar-to-git
+spec:
+  params:
+    - name: git-repository
+      description: HTTPS URL of the git repository (e.g. https://github.com/user/repo)
+    - name: integration-name
+      description: name of the integration, used as the BAR filename
+    - name: git-credentials-secret
+      description: |+
+        Secret in the pipeline-ace namespace with keys 'username' (GitHub user)
+        and 'password' (GitHub Personal Access Token with repo write access)
+    - name: ace-namespace
+      description: namespace to create the barauth Configuration in
+    - name: barauth-configuration
+      description: name for the barauth Configuration
+      default: "github-barauth"
+    - name: barfiles-folder
+      description: folder in the repository to store bar files
+      default: "barfiles"
+
+  workspaces:
+    - name: output
+      description: workspace containing the compiled BAR file
+
+  results:
+    - name: bar-url
+      description: raw HTTPS URL to the BAR file in the repository
+
+  steps:
+    - name: push
+      image: image-registry.openshift-image-registry.svc:5000/openshift/tools
+      script: |
+        #!/bin/sh
+
+        set -e
+
+        echo "reading git credentials"
+        GIT_USERNAME=$(oc get secret $(params.git-credentials-secret) -n pipeline-ace -ojsonpath='{.data.username}' | base64 -d)
+        GIT_TOKEN=$(oc get secret $(params.git-credentials-secret) -n pipeline-ace -ojsonpath='{.data.password}' | base64 -d)
+
+        echo "extracting repo path from URL"
+        REPO_PATH=$(echo "$(params.git-repository)" | sed 's|https://github.com/||')
+
+        echo "cloning repository"
+        git clone https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/${REPO_PATH} /tmp/repo-push
+        cd /tmp/repo-push
+
+        git config user.email "tekton@pipeline"
+        git config user.name "Tekton Pipeline"
+
+        echo "copying bar file to $(params.barfiles-folder)/"
+        mkdir -p $(params.barfiles-folder)
+        cp $(workspaces.output.path)/bars/integration.bar \
+           $(params.barfiles-folder)/$(params.integration-name).bar
+
+        echo "committing and pushing bar file"
+        git add $(params.barfiles-folder)/$(params.integration-name).bar
+        if git diff --staged --quiet; then
+          echo "no changes to bar file, skipping commit"
+        else
+          git commit -m "ci: update BAR for $(params.integration-name) [skip ci]"
+          git push
+        fi
+
+        echo "writing bar URL result"
+        BRANCH=$(git symbolic-ref --short HEAD)
+        echo -n "https://raw.githubusercontent.com/${REPO_PATH}/${BRANCH}/$(params.barfiles-folder)/$(params.integration-name).bar" \
+          > $(results.bar-url.path)
+
+        echo "creating barauth Configuration"
+        BARAUTH_DATA=$(python3 -c "import json,base64,sys; print(base64.b64encode(json.dumps({'authType':'BASIC_AUTH','credentials':{'username':sys.argv[1],'password':sys.argv[2]}}).encode()).decode())" "$GIT_USERNAME" "$GIT_TOKEN")
+
+        oc apply -f - <<BAREOF
+        apiVersion: appconnect.ibm.com/v1beta1
+        kind: Configuration
+        metadata:
+          name: $(params.barauth-configuration)
+          namespace: $(params.ace-namespace)
+        spec:
+          data: $BARAUTH_DATA
+          type: barauth
+        BAREOF

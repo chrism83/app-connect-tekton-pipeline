@@ -195,8 +195,18 @@ spec:
       default: "13.0.5.2-r1"
     - name: app-connect-enterprise-license
       default: "L-KPRV-AUG9NC"
-    - name: app-connect-enterprise-base-image
-      default: "cp.icr.io/cp/appc/ace-server-prod:13.0.5.2-r1-20251120-114813@sha256:facdbf11a7fbb19b1fa1b9fc7196480aada83f6763d32c5f8e1aaf643776d534"
+    - name: app-connect-enterprise-build-image
+      default: "cp.icr.io/cp/appc/ace:13.0.5.2-r1"
+      description: ACE developer image used to compile the BAR and run tests
+
+    # git credentials for pushing BAR file and creating barauth Configuration
+    - name: git-credentials-secret
+      description: |+
+        Secret in the pipeline-ace namespace with keys 'username' (GitHub user)
+        and 'password' (GitHub Personal Access Token with repo write access)
+    - name: barauth-configuration
+      default: "github-barauth"
+      description: name for the barauth Configuration resource in ace-namespace
     # ########################################################
 
   tasks:
@@ -224,6 +234,8 @@ spec:
           value: "$(params.ace-project-name)"
         - name: java-project-name
           value: "$(params.java-project-name)"
+        - name: ace-build-image
+          value: "$(params.app-connect-enterprise-build-image)"
       runAfter:
         # need the git repository to be able to
         #  compile the project into a bar file
@@ -231,6 +243,29 @@ spec:
       workspaces:
         - name: output
           workspace: pipeline-shared-workspace
+
+    - name: push-bar
+      taskRef:
+        name: ace-push-bar-to-git
+      params:
+        - name: git-repository
+          value: "$(params.git-repository)"
+        - name: integration-name
+          value: "$(params.integration-server-name)"
+        - name: git-credentials-secret
+          value: "$(params.git-credentials-secret)"
+        - name: ace-namespace
+          value: "$(params.ace-namespace)"
+        - name: barauth-configuration
+          value: "$(params.barauth-configuration)"
+      runAfter:
+        - bar-file
+      workspaces:
+        - name: output
+          workspace: pipeline-shared-workspace
+
+
+    # --------------------------------------------------------
 
     - name: test
       taskRef:
@@ -240,6 +275,8 @@ spec:
           value: "$(tasks.bar-file.results.folder)"
         - name: test-project-name
           value: "$(params.test-project-name)"
+        - name: ace-build-image
+          value: "$(params.app-connect-enterprise-build-image)"
       when:
         - input: "$(params.test-project-name)"
           operator: notin
@@ -482,7 +519,7 @@ spec:
         name: ace-create-integration-server
       params:
         # --------------------------------------------------------------
-        # details of the IntegrationServer to create
+        # details of the IntegrationRuntime to create
         # --------------------------------------------------------------
         - name: integration-name
           value: "$(params.integration-server-name)"
@@ -495,18 +532,12 @@ spec:
           value: "$(params.app-connect-enterprise-version)"
         - name: ace-server-license
           value: "$(params.app-connect-enterprise-license)"
+        - name: bar-url
+          value: "$(tasks.push-bar.results.bar-url)"
+        - name: barauth-configuration
+          value: "$(params.barauth-configuration)"
         # --------------------------------------------------------------
-        # details of the Docker image that will be created to run the
-        #  integration server
-        # --------------------------------------------------------------
-        - name: ace-server-base-image
-          value: "$(params.app-connect-enterprise-base-image)"
-        - name: bar-file-location
-          value: "$(tasks.bar-file.results.folder)"
-        - name: integration-tag
-          value: "$(tasks.clone-source.results.commit)"
-        # --------------------------------------------------------------
-        #  configuration resources to add to the integration server
+        #  configuration resources to add to the integration runtime
         # --------------------------------------------------------------
         # configurations to include
         - name: policies-configuration
@@ -527,6 +558,11 @@ spec:
           operator: notin
           values:
             - "Failed"
+        # bar-url result is only available if push-bar succeeded
+        - input: "$(tasks.push-bar.status)"
+          operator: in
+          values:
+            - "Succeeded"
       workspaces:
         - name: output
           workspace: pipeline-shared-workspace

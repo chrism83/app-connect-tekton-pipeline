@@ -2,10 +2,10 @@ apiVersion: eventstreams.ibm.com/v1beta2
 kind: KafkaUser
 metadata:
   labels:
-    app.kubernetes.io/instance: event-backbone
-    eventstreams.ibm.com/cluster: event-backbone
-  name: appconnect-kafka-user
-  namespace: eventstreams
+    app.kubernetes.io/instance: es-demo
+    eventstreams.ibm.com/cluster: es-demo
+  name: es-demo-ace-demo
+  namespace: tools
 spec:
   authentication:
     type: scram-sha-512
