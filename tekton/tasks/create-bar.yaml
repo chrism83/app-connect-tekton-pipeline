@@ -14,6 +14,15 @@ spec:
         Name of a Java project with implementation of Java Compute nodes.
         Leave this blank if no Java project is needed
 
+    - name: policies-project-name
+      default: ""
+      description: |+
+        Name of a policy project to include in the BAR file.
+        Including the policy in the BAR ensures it is available at flow
+        initialization time, avoiding a race condition with the operator's
+        post-start Configuration push.
+        Leave this blank if no policy project needs to be embedded.
+
     - name: ace-build-image
       default: "cp.icr.io/cp/appc/ace:13.0.5.2-r1"
       description: ACE developer image used to compile the BAR file
@@ -92,12 +101,22 @@ spec:
           JAVA_BUILD_OPTION=""
         fi
 
+        echo "checking policy project"
+        if [ -n "$(params.policies-project-name)" ]; then
+          echo "$(params.policies-project-name) will be embedded in the bar"
+          POLICY_BUILD_OPTION="--project $(params.policies-project-name)"
+        else
+          echo "no policy project to embed"
+          POLICY_BUILD_OPTION=""
+        fi
+
         echo "creating bar"
         ibmint package \
           --input-path $ACE_PROJECTS_WORKSPACE \
           --project $(params.ace-project-name) \
           --output-bar-file $BAR_FILE \
-          $JAVA_BUILD_OPTION
+          $JAVA_BUILD_OPTION \
+          $POLICY_BUILD_OPTION
 
         echo "checking bar"
         ls -l $BAR_FILE

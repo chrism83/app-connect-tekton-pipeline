@@ -234,12 +234,16 @@ spec:
           value: "$(params.ace-project-name)"
         - name: java-project-name
           value: "$(params.java-project-name)"
+        - name: policies-project-name
+          value: "$(params.policies-project-name)"
         - name: ace-build-image
           value: "$(params.app-connect-enterprise-build-image)"
       runAfter:
-        # need the git repository to be able to
-        #  compile the project into a bar file
+        # need the git repository to be able to compile the project into a bar file
         - clone-source
+        # wait for template substitution so that any policy project embedded
+        # in the BAR already has the correct credentials (e.g. MQ host/port)
+        - update-templates
       workspaces:
         - name: output
           workspace: pipeline-shared-workspace
