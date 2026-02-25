@@ -37,7 +37,7 @@ CREATE COMPUTE MODULE tcpip_to_mq_transform
 		CREATE LASTCHILD OF OutputRoot DOMAIN 'JSON';
 
 		-- ── HEADER: metadata fields added by the gateway ─────────────────
-		SET OutputRoot.JSON.Data.header.timestamp     = CAST(CURRENT_GMTIMESTAMP AS CHARACTER FORMAT 'IU');
+		SET OutputRoot.JSON.Data.header.timestamp     = CAST(CURRENT_TIMESTAMP AS CHARACTER FORMAT 'IU');
 		SET OutputRoot.JSON.Data.header.source        = 'tcp-gateway';
 		SET OutputRoot.JSON.Data.header.correlationId = UUIDASCHAR;
 		SET OutputRoot.JSON.Data.header.version       = '1.0';
@@ -49,11 +49,8 @@ CREATE COMPUTE MODULE tcpip_to_mq_transform
 
 		-- ── MQ message descriptor ─────────────────────────────────────────
 		-- Set format to MQSTR so MQ treats the body as a text string.
-		-- Create MQMD before the JSON body.
-		CREATE FIRSTCHILD OF OutputRoot DOMAIN 'MQMD';
-		SET OutputRoot.MQMD.Format       = 'MQSTR   ';
+		SET OutputRoot.MQMD.Format         = 'MQSTR   ';
 		SET OutputRoot.MQMD.CodedCharSetId = 1208;
-		SET OutputRoot.MQMD.Encoding     = 546;
 
 		RETURN TRUE;
 	END;
