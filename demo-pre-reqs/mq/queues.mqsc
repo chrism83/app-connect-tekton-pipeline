@@ -2,25 +2,35 @@
 * MQSC commands to configure QMGRNATIVEHA for the tcp-to-mq ACE flow
 * Queue Manager: qmgr-native-ha in namespace cp4i-mq
 *
-* Already applied via pipeline setup (documented here for reference).
-* To reapply:
+* To apply:
 *   oc exec -n cp4i-mq qmgr-native-ha-ibm-mq-0 -- \
 *     runmqsc QMGRNATIVEHA < demo-pre-reqs/mq/queues.mqsc
 * =============================================================
 
-* ─── Channel for ACE client connections (no SSL for internal cluster use) ───
-DEFINE CHANNEL('ACE.SVRCONN') CHLTYPE(SVRCONN) TRPTYPE(TCP) MCAUSER('mqm') REPLACE
+* ─── CONNAUTH: disable client credential checking ────────────────────────────
+* IBM MQ on OpenShift runs with an arbitrary UID (e.g. 1000890000) that has
+* no corresponding named OS user. Setting MCAUSER to any named user triggers
+* AMQ9557E (user ID init failure). CHCKCLNT(NONE) is safe here because the
+* channel is internal-cluster-only (no SSL, no external exposure).
+ALTER AUTHINFO(SYSTEM.DEFAULT.AUTHINFO.IDPWOS) AUTHTYPE(IDPWOS) CHCKCLNT(NONE)
+REFRESH SECURITY TYPE(CONNAUTH)
 
-* Allow all users except 'nobody' (BLOCKUSER with empty USERLIST = allow all)
+* ─── Channel for ACE client connections (no SSL for internal cluster use) ────
+* MCAUSER left blank: MQ uses the queue manager process user for OAM checks.
+* Do NOT set MCAUSER to a named user on OpenShift — MQ cannot initialize
+* named users (AMQ9557E) when they don't exist in the pod's /etc/passwd.
+DEFINE CHANNEL('ACE.SVRCONN') CHLTYPE(SVRCONN) TRPTYPE(TCP) MCAUSER('') REPLACE
+
+* Allow all users except 'nobody'
 SET CHLAUTH('ACE.SVRCONN') TYPE(BLOCKUSER) USERLIST('nobody')
 
-* ─── Input queue: receives messages from the TCP/IP ACE flow ────────────────
+* ─── Input queue: receives messages from the TCP/IP ACE flow ─────────────────
 DEFINE QLOCAL('CP4I.DEMO.IN.Q') DEFPSIST(YES) MAXDEPTH(5000) REPLACE
 
-* ─── Output queue: for the MQ-to-MQ transform flow (future use) ─────────────
+* ─── Output queue: for the MQ-to-MQ transform flow (future use) ──────────────
 DEFINE QLOCAL('CP4I.DEMO.OUT.Q') DEFPSIST(YES) MAXDEPTH(5000) REPLACE
 
-* ─── Auth records: grant mqm user access ───────────────────────────────────
+* ─── Auth records: grant mqm user access ─────────────────────────────────────
 SET AUTHREC OBJTYPE(QMGR) PRINCIPAL('mqm') AUTHADD(CONNECT,INQ)
 SET AUTHREC PROFILE('CP4I.DEMO.IN.Q') OBJTYPE(QUEUE) PRINCIPAL('mqm') AUTHADD(PUT,GET,INQ,BROWSE)
 SET AUTHREC PROFILE('CP4I.DEMO.OUT.Q') OBJTYPE(QUEUE) PRINCIPAL('mqm') AUTHADD(PUT,GET,INQ,BROWSE)
