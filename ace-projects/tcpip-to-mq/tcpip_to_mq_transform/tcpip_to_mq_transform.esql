@@ -1,4 +1,4 @@
-BROKER SCHEMA tcpip_to_mq_transform;
+BROKER SCHEMA tcpip_to_mq_transform
 
 /**
  * tcpip_to_mq_transform

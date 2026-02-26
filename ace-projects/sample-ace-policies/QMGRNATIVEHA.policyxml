@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policies>
+    <policy longDescription="" policyName="QMGRNATIVEHA" policyTemplate="MQEndpoint" policyType="MQEndpoint" shortDescription="" version="">
+        <connection>CCDT</connection>
+        <destinationQueueManagerName/>
+        <queueManagerHostname/>
+        <listenerPortNumber>1414</listenerPortNumber>
+        <channelName/>
+        <CCDTUrl/>
+        <securityIdentity/>
+        <useSSL>false</useSSL>
+        <SSLPeerName/>
+        <SSLCipherSpec/>
+        <SSLCertificateLabel/>
+        <MQApplName/>
+        <reconnectOption>default</reconnectOption>
+    </policy>
+</policies>
