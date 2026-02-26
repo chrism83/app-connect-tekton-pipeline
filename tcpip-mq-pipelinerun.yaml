@@ -43,13 +43,16 @@ spec:
       value: ""
 
     # ########################################################
-    # credentials: substitute TEMPLATE_* values in policy file
+    # credentials: substitute TEMPLATE_* values directly in the
+    # msgflow so MQ connection params are baked into the BAR file.
+    # This avoids the ACE OIS race condition where policyproject
+    # Configurations are pushed via admin API after flows initialize.
     # ########################################################
     - name: credentials-to-update
       value:
-        # Replace MQ host and port in the policy file
-        - "tcpip-mq-policies/QMGRNATIVEHA.policyxml TEMPLATE_MQ_HOST host mq-connection-info tools"
-        - "tcpip-mq-policies/QMGRNATIVEHA.policyxml TEMPLATE_MQ_PORT port mq-connection-info tools"
+        # Replace MQ host and port directly in the msgflow XML
+        - "tcpip-to-mq/tcpip_to_mq_flow.msgflow TEMPLATE_MQ_HOST host mq-connection-info tools"
+        - "tcpip-to-mq/tcpip_to_mq_flow.msgflow TEMPLATE_MQ_PORT port mq-connection-info tools"
 
     # ########################################################
     # optional supporting resources

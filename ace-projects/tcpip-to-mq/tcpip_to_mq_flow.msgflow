@@ -15,8 +15,10 @@
       <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_2" location="210,10" computeExpression="esql://routine/tcpip_to_mq_transform#tcpip_to_mq_transform.Main">
         <translation xmi:type="utility:ConstantString" string="add envelope header"/>
       </nodes>
-      <!-- MQ Output: puts JSON envelope to CP4I.DEMO.IN.Q using QMGRNATIVEHA policy -->
-      <nodes xmi:type="ComIbmMQOutput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_3" location="410,10" queueName="CP4I.DEMO.IN.Q" queueManagerName="QMGRNATIVEHA" destinationQueueManagerName="QMGRNATIVEHA" policyUrl="{tcpip-mq-policies}:QMGRNATIVEHA">
+      <!-- MQ Output: puts JSON envelope to CP4I.DEMO.IN.Q -->
+      <!-- Connection via direct params (substituted at pipeline build time to avoid ACE OIS race condition -->
+      <!-- with policyproject Configuration being pushed post-start via admin API) -->
+      <nodes xmi:type="ComIbmMQOutput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_3" location="410,10" queueName="CP4I.DEMO.IN.Q" queueManagerName="QMGRNATIVEHA" destinationQueueManagerName="QMGRNATIVEHA" queueManagerHostname="TEMPLATE_MQ_HOST" queueManagerPort="TEMPLATE_MQ_PORT" channelName="ACE.SVRCONN">
         <translation xmi:type="utility:ConstantString" string="put to MQ CP4I.DEMO.IN.Q"/>
       </nodes>
       <connections xmi:type="eflow:FCMConnection" xmi:id="FCMConnection_1" targetNode="FCMComposite_1_2" sourceNode="FCMComposite_1_1" sourceTerminalName="OutTerminal.out" targetTerminalName="InTerminal.in"/>
