@@ -33,7 +33,13 @@ CREATE COMPUTE MODULE tcpip_to_mq_transform
 		DECLARE rawBlob  BLOB InputRoot.BLOB.BLOB;
 		DECLARE rawJson  CHAR CAST(rawBlob AS CHAR CCSID 1208);
 
-		-- Build JSON output tree
+		-- ── MQ message descriptor ─────────────────────────────────────────
+		-- Must be set BEFORE the body domain so it becomes the first child
+		-- of OutputRoot. MQ Output node requires: MQMD → body domain.
+		SET OutputRoot.MQMD.Format         = 'MQSTR   ';
+		SET OutputRoot.MQMD.CodedCharSetId = 1208;
+
+		-- Build JSON output tree (body domain, after MQMD)
 		CREATE LASTCHILD OF OutputRoot DOMAIN 'JSON';
 
 		-- ── HEADER: metadata fields added by the gateway ─────────────────
@@ -46,11 +52,6 @@ CREATE COMPUTE MODULE tcpip_to_mq_transform
 		-- Stored as a JSON string value so the envelope is always well-formed,
 		-- regardless of what the client sends.
 		SET OutputRoot.JSON.Data.payload = rawJson;
-
-		-- ── MQ message descriptor ─────────────────────────────────────────
-		-- Set format to MQSTR so MQ treats the body as a text string.
-		SET OutputRoot.MQMD.Format         = 'MQSTR   ';
-		SET OutputRoot.MQMD.CodedCharSetId = 1208;
 
 		RETURN TRUE;
 	END;
